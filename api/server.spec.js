@@ -46,7 +46,6 @@ describe("POST /api/auth/register", () => {
 
 describe("POST /api/auth/login", () => {
   const newUser = { username: "samet", password: "123" };
-  const { username } = newUser;
 
   it("returns 200 OK with right credentials", async () => {
     await request(server)
@@ -89,5 +88,25 @@ describe("GET /api/jokes", () => {
       });
   });
 
-  it.todo("returns an array of jokes with valid token");
+  it("returns an array of jokes with valid token", async function () {
+    const newUser = { username: "samet", password: "123" };
+    const { username, password } = newUser;
+
+    beforeEach(async () => {
+      await db("users").insert(newUser); // Add user
+    });
+
+    const loggedIn = await request(server)
+      .post("/api/auth/login")
+      .send({ username, password });
+
+    const { token } = loggedIn.body; // Grab token from login
+
+    return request(server)
+      .get("/api/jokes")
+      .set("Authorization", token)
+      .then((res) => {
+        expect(res.body).toHaveLength(20);
+      });
+  });
 });
